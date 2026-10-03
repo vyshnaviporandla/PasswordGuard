@@ -1,316 +1,189 @@
-const passwordInput = document.getElementById("password");
-const togglePassword = document.getElementById("togglePassword");
-const analyzeBtn = document.getElementById("analyzeBtn");
-
-const results = document.getElementById("results");
-
-const scoreElement = document.getElementById("score");
-const strengthElement = document.getElementById("strength");
-const scoreBar = document.getElementById("scoreBar");
-const scoreDescription = document.getElementById("scoreDescription");
-
-const lengthValue = document.getElementById("lengthValue");
-const entropyValue = document.getElementById("entropyValue");
-
-const checksPassed = document.getElementById("checksPassed");
-const checksTotal = document.getElementById("checksTotal");
-
-const checksList = document.getElementById("checksList");
-const suggestionsList = document.getElementById("suggestionsList");
-
-const warningsCard = document.getElementById("warningsCard");
-const warningsList = document.getElementById("warningsList");
-
 const API_URL = "https://passwordguard-api.onrender.com/api/analyze";
 
-togglePassword.onclick = function () {
-if (passwordInput.type === "password") {
-passwordInput.type = "text";
-togglePassword.textContent = "Hide";
-} else {
-passwordInput.type = "password";
-togglePassword.textContent = "Show";
-}
-};
+const passwordInput = document.getElementById("password");
+const analyzeButton = document.getElementById("analyze");
+const toggleButton = document.getElementById("toggle");
 
-function getStrengthDescription(strength) {
-switch (strength) {
-case "VERY WEAK":
-return "This password has significant security weaknesses.";
+const results = document.getElementById("results");
+const statusText = document.getElementById("status");
 
-    case "WEAK":
-        return "This password needs several security improvements.";
+const scoreText = document.getElementById("score");
+const classificationText = document.getElementById("classification");
+const barFill = document.getElementById("bar-fill");
+const descriptionText = document.getElementById("description");
 
-    case "MODERATE":
-        return "This password has reasonable complexity but can be improved.";
+const lengthText = document.getElementById("length");
+const uniqueText = document.getElementById("unique");
+const entropyText = document.getElementById("entropy");
+const typesText = document.getElementById("types");
 
-    case "STRONG":
-        return "This password has good complexity and structure.";
+const checksBox = document.getElementById("checks");
+const suggestionsBox = document.getElementById("suggestions");
+const findingsBox = document.getElementById("findings");
 
-    case "VERY STRONG":
-        return "This password meets most of the analyzer's strength criteria.";
+toggleButton.addEventListener("click", function () {
+    passwordInput.type =
+        passwordInput.type === "password" ? "text" : "password";
 
-    default:
-        return "Analyze a password to see its security level.";
-}
-
-
-}
-
-function updateScoreCircle(score) {
-const circle = document.querySelector(".score-circle");
-
-
-if (!circle) {
-    return;
-}
-
-circle.style.background =
-    "radial-gradient(circle, var(--card) 63%, transparent 64%)," +
-    "conic-gradient(var(--primary) " +
-    score +
-    "%, #18334d " +
-    score +
-    "%)";
-
-
-}
-
-function buildChecks(data) {
-const checks = data.checks || {};
-const metrics = data.metrics || {};
-
-
-return [
-    {
-        name: "Lowercase letters",
-        passed: checks.lowercase === true
-    },
-    {
-        name: "Uppercase letters",
-        passed: checks.uppercase === true
-    },
-    {
-        name: "Numbers",
-        passed: checks.number === true
-    },
-    {
-        name: "Symbols",
-        passed: checks.symbol === true
-    },
-    {
-        name: "No common password",
-        passed: metrics.common_password !== true
-    },
-    {
-        name: "No sequence pattern",
-        passed: checks.sequence !== true
-    },
-    {
-        name: "No keyboard pattern",
-        passed: checks.keyboard_pattern !== true
-    },
-    {
-        name: "No repetition",
-        passed: checks.repetition !== true
-    },
-    {
-        name: "No predictable structure",
-        passed: checks.predictable_structure !== true
-    },
-    {
-        name: "No personal information",
-        passed: checks.personal_information !== true
-    }
-];
-
-
-}
-
-function renderChecks(checks) {
-checksList.innerHTML = "";
-
-
-let passed = 0;
-
-checks.forEach(function (check) {
-    if (check.passed) {
-        passed++;
-    }
-
-    const item = document.createElement("div");
-
-    item.className = "check-item";
-
-    item.innerHTML =
-        '<span class="check-icon ' +
-        (check.passed ? "pass" : "fail") +
-        '">' +
-        (check.passed ? "✓" : "✕") +
-        "</span>" +
-        "<span>" +
-        check.name +
-        "</span>";
-
-    checksList.appendChild(item);
+    toggleButton.textContent =
+        passwordInput.type === "password" ? "Show" : "Hide";
 });
 
-checksPassed.textContent = passed;
-checksTotal.textContent = checks.length;
+function showResults(data) {
+    const metrics = data.metrics || {};
 
+    scoreText.textContent = data.score;
+    classificationText.textContent = data.classification;
 
-}
+    barFill.style.width = data.score + "%";
 
-function renderSuggestions(suggestions) {
-suggestionsList.innerHTML = "";
+    descriptionText.textContent =
+        "This password received a score of " +
+        data.score +
+        " out of 100.";
 
+    lengthText.textContent = metrics.length || 0;
 
-if (!Array.isArray(suggestions)) {
-    return;
-}
+    uniqueText.textContent =
+        Math.round((metrics.unique_character_ratio || 0) * 100) + "%";
 
-suggestions.forEach(function (suggestion) {
-    const item = document.createElement("div");
+    entropyText.textContent =
+        (metrics.entropy_bits || 0) + " bits";
 
-    item.className = "suggestion-item";
+    typesText.textContent =
+        (metrics.character_type_count || 0) + "/4";
 
-    item.innerHTML =
-        "<span>💡</span>" +
-        "<div>" +
-        suggestion +
-        "</div>";
+    checksBox.innerHTML = "";
 
-    suggestionsList.appendChild(item);
-});
+    const checks = data.checks || {};
 
+    const checkItems = [
+        ["Lowercase letters", checks.lowercase],
+        ["Uppercase letters", checks.uppercase],
+        ["Numbers", checks.number],
+        ["Symbols", checks.symbol],
+        ["Not a common password", !metrics.common_password],
+        ["No sequence pattern", !checks.sequence],
+        ["No keyboard pattern", !checks.keyboard_pattern],
+        ["No repetition", !checks.repetition],
+        ["No predictable structure", !checks.predictable_structure]
+    ];
 
-}
+    checkItems.forEach(function (item) {
+        const div = document.createElement("div");
 
-function renderWarnings(findings) {
-warningsList.innerHTML = "";
+        div.className = item[1]
+            ? "check pass"
+            : "check fail";
 
+        div.textContent =
+            (item[1] ? "✓ " : "✕ ") + item[0];
 
-if (!Array.isArray(findings) || findings.length === 0) {
-    warningsCard.classList.add("hidden");
-    return;
-}
-
-warningsCard.classList.remove("hidden");
-
-findings.forEach(function (finding) {
-    const item = document.createElement("div");
-
-    item.className = "warning-item";
-
-    item.innerHTML =
-        "<span>⚠</span>" +
-        "<div>" +
-        "<strong>" +
-        (finding.type || "Security Finding") +
-        "</strong><br>" +
-        (finding.description || "") +
-        "</div>";
-
-    warningsList.appendChild(item);
-});
-
-
-}
-
-async function analyzePassword() {
-const password = passwordInput.value;
-
-if (!password) {
-    alert("Please enter a password first.");
-    passwordInput.focus();
-    return;
-}
-
-analyzeBtn.disabled = true;
-analyzeBtn.textContent = "Analyzing...";
-
-try {
-    const response = await fetch(API_URL, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            password: password
-        })
+        checksBox.appendChild(div);
     });
 
-    const data = await response.json();
+    suggestionsBox.innerHTML = "";
 
-    if (!response.ok) {
-        throw new Error(
-            data.error || "Password analysis failed."
-        );
+    (data.suggestions || []).forEach(function (suggestion) {
+        const div = document.createElement("div");
+
+        div.className = "suggestion";
+
+        div.textContent = "💡 " + suggestion;
+
+        suggestionsBox.appendChild(div);
+    });
+
+    findingsBox.innerHTML = "";
+
+    (data.findings || []).forEach(function (finding) {
+        const div = document.createElement("div");
+
+        div.className = "finding";
+
+        div.innerHTML =
+            "<strong>" +
+            finding.type +
+            " — " +
+            finding.severity +
+            "</strong>" +
+            "<div>" +
+            finding.description +
+            "</div>";
+
+        findingsBox.appendChild(div);
+    });
+
+    if ((data.findings || []).length === 0) {
+        findingsBox.textContent =
+            "No major pattern findings detected.";
     }
 
     results.classList.remove("hidden");
-
-    const score = Number(data.score) || 0;
-
-    const strength =
-        data.classification || "VERY WEAK";
-
-    scoreElement.textContent = score;
-
-    strengthElement.textContent = strength;
-
-    scoreBar.style.width = score + "%";
-
-    scoreDescription.textContent =
-        getStrengthDescription(strength);
-
-    const metrics = data.metrics || {};
-
-    lengthValue.textContent =
-        metrics.length || 0;
-
-    entropyValue.textContent =
-        metrics.entropy_bits || 0;
-
-    updateScoreCircle(score);
-
-    const checks = buildChecks(data);
-
-    renderChecks(checks);
-
-    renderSuggestions(
-        data.suggestions || []
-    );
-
-    renderWarnings(
-        data.findings || []
-    );
-
-    results.scrollIntoView({
-        behavior: "smooth",
-        block: "start"
-    });
-
-} catch (error) {
-    console.error(
-        "PasswordGuard error:",
-        error
-    );
-
-    alert(
-        "Could not connect to the PasswordGuard backend.\n\n" +
-        error.message
-    );
 }
 
-analyzeBtn.disabled = false;
-analyzeBtn.textContent = "Analyze Password";
-}
+async function analyzePassword() {
+    const password = passwordInput.value;
 
-analyzeBtn.onclick = analyzePassword;
-
-passwordInput.onkeydown = function (event) {
-    if (event.key === "Enter") {
-        analyzePassword();
+    if (!password) {
+        statusText.textContent =
+            "Please enter a password first.";
+        return;
     }
-};
+
+    analyzeButton.disabled = true;
+    analyzeButton.textContent = "Analyzing...";
+    statusText.textContent =
+        "Connecting to PasswordGuard API...";
+
+    try {
+        const response = await fetch(API_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                password: password
+            })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                data.error || "Analysis failed."
+            );
+        }
+
+        showResults(data);
+
+        statusText.textContent =
+            "Analysis completed successfully.";
+
+    } catch (error) {
+        console.error(error);
+
+        statusText.textContent =
+            "Backend connection failed: " +
+            error.message;
+
+    } finally {
+        analyzeButton.disabled = false;
+        analyzeButton.textContent =
+            "Analyze Password";
+    }
+}
+
+analyzeButton.addEventListener(
+    "click",
+    analyzePassword
+);
+
+passwordInput.addEventListener(
+    "keydown",
+    function (event) {
+        if (event.key === "Enter") {
+            analyzePassword();
+        }
+    }
+);
