@@ -21,6 +21,8 @@ const suggestionsList = document.getElementById("suggestionsList");
 const warningsCard = document.getElementById("warningsCard");
 const warningsList = document.getElementById("warningsList");
 
+const API_URL = "https://passwordguard-api.onrender.com/api/analyze";
+
 
 togglePassword.addEventListener("click", () => {
     if (passwordInput.type === "password") {
@@ -34,21 +36,23 @@ togglePassword.addEventListener("click", () => {
 
 
 function getStrengthDescription(strength) {
-
     const descriptions = {
-        "Very Weak": "This password has significant security weaknesses.",
-        "Weak": "This password needs several security improvements.",
-        "Moderate": "This password has reasonable complexity but can be improved.",
-        "Strong": "This password has good complexity and structure.",
-        "Very Strong": "This password meets most of the analyzer's strength criteria."
+        "VERY WEAK": "This password has significant security weaknesses.",
+        "WEAK": "This password needs several security improvements.",
+        "MODERATE": "This password has reasonable complexity but can be improved.",
+        "STRONG": "This password has good complexity and structure.",
+        "VERY STRONG": "This password meets most of the analyzer's strength criteria."
     };
 
-    return descriptions[strength] || "Analyze a password to see its security level.";
+    return descriptions[strength] ||
+        "Analyze a password to see its security level.";
 }
 
 
 function updateScoreCircle(score) {
     const circle = document.querySelector(".score-circle");
+
+    if (!circle) return;
 
     circle.style.background =
         `radial-gradient(circle, var(--card) 63%, transparent 64%),
@@ -57,13 +61,11 @@ function updateScoreCircle(score) {
 
 
 function renderChecks(checks) {
-
     checksList.innerHTML = "";
 
     let passed = 0;
 
     checks.forEach(check => {
-
         if (check.passed) {
             passed++;
         }
@@ -87,11 +89,9 @@ function renderChecks(checks) {
 
 
 function renderSuggestions(suggestions) {
-
     suggestionsList.innerHTML = "";
 
     suggestions.forEach(suggestion => {
-
         const item = document.createElement("div");
 
         item.className = "suggestion-item";
@@ -106,26 +106,27 @@ function renderSuggestions(suggestions) {
 }
 
 
-function renderWarnings(warnings) {
-
+function renderWarnings(findings) {
     warningsList.innerHTML = "";
 
-    if (!warnings || warnings.length === 0) {
+    if (!findings || findings.length === 0) {
         warningsCard.classList.add("hidden");
         return;
     }
 
     warningsCard.classList.remove("hidden");
 
-    warnings.forEach(warning => {
-
+    findings.forEach(finding => {
         const item = document.createElement("div");
 
         item.className = "warning-item";
 
         item.innerHTML = `
             <span>⚠</span>
-            <div>${warning}</div>
+            <div>
+                <strong>${finding.type}</strong><br>
+                ${finding.description}
+            </div>
         `;
 
         warningsList.appendChild(item);
@@ -133,8 +134,55 @@ function renderWarnings(warnings) {
 }
 
 
-async function analyzePassword() {
+function buildChecks(data) {
+    const checks = data.checks || {};
 
+    return [
+        {
+            name: "Lowercase letters",
+            passed: checks.lowercase
+        },
+        {
+            name: "Uppercase letters",
+            passed: checks.uppercase
+        },
+        {
+            name: "Numbers",
+            passed: checks.number
+        },
+        {
+            name: "Symbols",
+            passed: checks.symbol
+        },
+        {
+            name: "No common password",
+            passed: !data.metrics.common_password
+        },
+        {
+            name: "No sequence pattern",
+            passed: !checks.sequence
+        },
+        {
+            name: "No keyboard pattern",
+            passed: !checks.keyboard_pattern
+        },
+        {
+            name: "No repetition",
+            passed: !checks.repetition
+        },
+        {
+            name: "No predictable structure",
+            passed: !checks.predictable_structure
+        },
+        {
+            name: "No personal information",
+            passed: !checks.personal_information
+        }
+    ];
+}
+
+
+async function analyzePassword() {
     const password = passwordInput.value;
 
     if (!password) {
@@ -147,7 +195,7 @@ async function analyzePassword() {
     analyzeBtn.textContent = "Analyzing...";
 
     try {
-            const response = await fetch("https://passwordguard-api.onrender.com/api/analyze", {
+        const response = await fetch(API_URL, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -165,22 +213,36 @@ async function analyzePassword() {
 
         results.classList.remove("hidden");
 
-        scoreElement.textContent = data.score;
-        strengthElement.textContent = data.strength;
+        const score = data.score;
+        const strength = data.classification;
 
-        scoreBar.style.width = `${data.score}%`;
+        scoreElement.textContent = score;
+        strengthElement.textContent = strength;
+
+        scoreBar.style.width = `${score}%`;
 
         scoreDescription.textContent =
-            getStrengthDescription(data.strength);
+            getStrengthDescription(strength);
 
-        lengthValue.textContent = data.length;
-        entropyValue.textContent = data.entropy;
+        lengthValue.textContent =
+            data.metrics.length;
 
-        updateScoreCircle(data.score);
+        entropyValue.textContent =
+            data.metrics.entropy_bits;
 
-        renderChecks(data.checks);
-        renderSuggestions(data.suggestions);
-        renderWarnings(data.warnings);
+        updateScoreCircle(score);
+
+        const checks = buildChecks(data);
+
+        renderChecks(checks);
+
+        renderSuggestions(
+            data.suggestions || []
+        );
+
+        renderWarnings(
+            data.findings || []
+        );
 
         results.scrollIntoView({
             behavior: "smooth",
@@ -188,14 +250,11 @@ async function analyzePassword() {
         });
 
     } catch (error) {
-
         alert(
             "Could not connect to the PasswordGuard backend.\n\n" +
             error.message
         );
-
     } finally {
-
         analyzeBtn.disabled = false;
         analyzeBtn.textContent = "Analyze Password";
     }
@@ -206,9 +265,7 @@ analyzeBtn.addEventListener("click", analyzePassword);
 
 
 passwordInput.addEventListener("keydown", event => {
-
     if (event.key === "Enter") {
         analyzePassword();
     }
-
 });
