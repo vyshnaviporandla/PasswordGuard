@@ -305,14 +305,12 @@ try {
 
 analyzeBtn.disabled = false;
 analyzeBtn.textContent = "Analyze Password";
-
-
 }
 
 analyzeBtn.onclick = analyzePassword;
 
 passwordInput.onkeydown = function (event) {
-if (event.key === "Enter") {
-analyzePassword();
-}
+    if (event.key === "Enter") {
+        analyzePassword();
+    }
 };
