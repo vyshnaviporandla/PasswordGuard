@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    <meta
+        name="description"
+        content="PasswordGuard - Password Strength Analyzer"
+    >
+
     <title>PasswordGuard | Password Security Analyzer</title>
 
     <link rel="stylesheet" href="style.css">
@@ -11,321 +16,255 @@
 
 <body>
 
-    <header class="navbar">
-        <div class="brand">
-            <div class="brand-icon">🛡️</div>
-            <div>
-                <h1>PasswordGuard</h1>
-                <span>Security Analyzer</span>
-            </div>
-        </div>
+<header class="topbar">
+    <div class="brand">PasswordGuard</div>
 
-        <div class="security-status">
-            <span class="status-dot"></span>
-            Secure API Analysis
-        </div>
-    </header>
+    <div class="badge">
+        Defensive Cybersecurity Tool
+    </div>
+</header>
 
 
-    <main class="container">
+<main class="container">
 
-        <!-- Hero -->
-        <section class="hero">
-            <div>
-                <p class="eyebrow">CYBERSECURITY TOOL</p>
+    <section class="hero">
 
-                <h2>
-                    Analyze your password
-                    <span>securely.</span>
-                </h2>
-
-                <p class="hero-text">
-                    Check password strength, identify security weaknesses,
-                    estimate entropy, and receive practical security suggestions.
-                </p>
-            </div>
-        </section>
-
-
-        <!-- Analyzer -->
-        <section class="analyzer-grid">
-
-            <div class="card password-card">
-
-                <div class="card-header">
-                    <div>
-                        <p class="section-label">PASSWORD ANALYZER</p>
-                        <h3>Test Password Strength</h3>
-                    </div>
-
-                    <span class="lock-icon">🔒</span>
-                </div>
-
-                <label for="password">Enter a password</label>
-
-                <div class="password-input">
-                    <input
-                        type="password"
-                        id="password"
-                        placeholder="Enter password to analyze..."
-                        autocomplete="off"
-                    >
-
-                    <button id="togglePassword" type="button">
-                        Show
-                    </button>
-                </div>
-
-                <p class="privacy-note">
-                    🔐 Your password is transmitted securely to the PasswordGuard API over HTTPS for analysis. 
-                    It is processed in memory and is not stored.
-                </p>
-
-                <button id="analyzeBtn" class="analyze-btn">
-                    Analyze Password
-                </button>
-
-            </div>
-
-
-            <!-- Score -->
-            <div class="card score-card">
-
-                <p class="section-label">SECURITY SCORE</p>
-
-                <div class="score-circle">
-                    <div>
-                        <strong id="score">0</strong>
-                        <span>/100</span>
-                    </div>
-                </div>
-
-                <h3 id="strength">Not analyzed</h3>
-
-                <div class="score-bar">
-                    <div id="scoreBar"></div>
-                </div>
-
-                <p id="scoreDescription">
-                    Enter a password to see your security score.
-                </p>
-
-            </div>
-
-        </section>
-
-
-        <!-- Results -->
-        <section id="results" class="results-section hidden">
-
-            <div class="section-title">
-                <p class="section-label">SECURITY ANALYSIS</p>
-                <h2>Password Security Breakdown</h2>
-            </div>
-
-
-            <div class="stats-grid">
-
-                <div class="stat-card">
-                    <span class="stat-icon">📏</span>
-                    <div>
-                        <small>Password Length</small>
-                        <strong id="lengthValue">0</strong>
-                    </div>
-                </div>
-
-                <div class="stat-card">
-                    <span class="stat-icon">🧠</span>
-                    <div>
-                        <small>Estimated Entropy</small>
-                        <strong>
-                            <span id="entropyValue">0</span> bits
-                        </strong>
-                    </div>
-                </div>
-
-                <div class="stat-card">
-                    <span class="stat-icon">✓</span>
-                    <div>
-                        <small>Security Checks</small>
-                        <strong>
-                            <span id="checksPassed">0</span>/<span id="checksTotal">0</span>
-                        </strong>
-                    </div>
-                </div>
-
-            </div>
-
-
-            <div class="analysis-grid">
-
-                <!-- Checks -->
-                <div class="card">
-
-                    <div class="card-header">
-                        <div>
-                            <p class="section-label">CHECKLIST</p>
-                            <h3>Password Requirements</h3>
-                        </div>
-                    </div>
-
-                    <div id="checksList" class="checks-list"></div>
-
-                </div>
-
-
-                <!-- Suggestions -->
-                <div class="card">
-
-                    <div class="card-header">
-                        <div>
-                            <p class="section-label">RECOMMENDATIONS</p>
-                            <h3>Security Suggestions</h3>
-                        </div>
-                    </div>
-
-                    <div id="suggestionsList"></div>
-
-                </div>
-
-            </div>
-
-
-            <!-- Warnings -->
-            <div id="warningsCard" class="card warnings-card hidden">
-
-                <div class="card-header">
-                    <div>
-                        <p class="section-label warning-label">SECURITY WARNINGS</p>
-                        <h3>Potential Risks Detected</h3>
-                    </div>
-
-                    <span>⚠️</span>
-                </div>
-
-                <div id="warningsList"></div>
-
-            </div>
-
-        </section>
-
-
-        <!-- Awareness -->
-        <section class="awareness">
-
-            <div class="section-title">
-                <p class="section-label">SECURITY AWARENESS</p>
-                <h2>Password Security Best Practices</h2>
-            </div>
-
-            <div class="tips-grid">
-
-                <div class="tip-card">
-                    <span>🔑</span>
-                    <h3>Use unique passwords</h3>
-                    <p>
-                        Avoid using the same password across multiple accounts.
-                        A compromised password can otherwise affect several services.
-                    </p>
-                </div>
-
-                <div class="tip-card">
-                    <span>📐</span>
-                    <h3>Prefer longer passwords</h3>
-                    <p>
-                        Longer passwords or passphrases generally provide a larger
-                        search space for attackers.
-                    </p>
-                </div>
-
-                <div class="tip-card">
-                    <span>🚫</span>
-                    <h3>Avoid predictable patterns</h3>
-                    <p>
-                        Names, birthdays, keyboard sequences and simple number
-                        patterns are easier to guess.
-                    </p>
-                </div>
-
-                <div class="tip-card">
-                    <span>🔐</span>
-                    <h3>Use a password manager</h3>
-                    <p>
-                        Password managers can help generate and securely manage
-                        unique passwords for different accounts.
-                    </p>
-                </div>
-
-            </div>
-
-        </section>
-
-
-        <!-- How it works -->
-        <section class="how-section">
-
-            <div class="section-title">
-                <p class="section-label">HOW IT WORKS</p>
-                <h2>Security Analysis Process</h2>
-            </div>
-
-            <div class="process-grid">
-
-                <div class="process-card">
-                    <div class="process-number">01</div>
-                    <h3>Input</h3>
-                    <p>
-                        Enter a password into the analyzer.
-                    </p>
-                </div>
-
-                <div class="process-card">
-                    <div class="process-number">02</div>
-                    <h3>Analyze</h3>
-                    <p>
-                        The system checks length, character diversity,
-                        patterns and common-password indicators.
-                    </p>
-                </div>
-
-                <div class="process-card">
-                    <div class="process-number">03</div>
-                    <h3>Assess</h3>
-                    <p>
-                        A security score and estimated entropy are calculated.
-                    </p>
-                </div>
-
-                <div class="process-card">
-                    <div class="process-number">04</div>
-                    <h3>Improve</h3>
-                    <p>
-                        Security suggestions help identify areas for improvement.
-                    </p>
-                </div>
-
-            </div>
-
-        </section>
-
-    </main>
-
-
-    <footer>
-
-        <div>
-            <strong>PasswordGuard</strong>
-            <p>Password Strength Analyzer & Security Suggestion Tool</p>
-        </div>
-
-        <p>
-            Educational cybersecurity project • No password storage
+        <p class="eyebrow">
+            PASSWORD SECURITY
         </p>
 
-    </footer>
+        <h1>
+            Analyze Your Password
+        </h1>
+
+        <p class="hero-text">
+            Check password strength, identify common weaknesses,
+            and get practical security suggestions.
+        </p>
+
+        <div class="privacy">
+            🔒 Passwords are analyzed in memory and are not stored
+            by this application.
+        </div>
+
+    </section>
 
 
-    <script src="script.js"></script>
+    <section class="analyzer-card">
+
+        <label for="password">
+            Enter a test password
+        </label>
+
+        <div class="input-row">
+
+            <input
+                id="password"
+                type="password"
+                autocomplete="off"
+                placeholder="Enter a synthetic/test password"
+            >
+
+            <button
+                id="toggle"
+                type="button"
+            >
+                Show
+            </button>
+
+        </div>
+
+
+        <button
+            id="analyze"
+            type="button"
+            class="primary-button"
+        >
+            Analyze Password
+        </button>
+
+
+        <p
+            id="status"
+            class="status"
+        ></p>
+
+    </section>
+
+
+    <section
+        id="results"
+        class="hidden"
+    >
+
+        <div class="score-grid">
+
+            <div class="score-card">
+
+                <div class="score-label">
+                    Security Score
+                </div>
+
+                <div
+                    id="score"
+                    class="score"
+                >
+                    0
+                </div>
+
+                <div
+                    id="classification"
+                    class="classification"
+                >
+                    VERY WEAK
+                </div>
+
+                <div class="bar">
+                    <div id="bar-fill"></div>
+                </div>
+
+                <p id="description"></p>
+
+            </div>
+
+
+            <div class="metric-card">
+
+                <h3>
+                    Metrics
+                </h3>
+
+                <div class="metric">
+                    <span>Length</span>
+                    <strong id="length">0</strong>
+                </div>
+
+                <div class="metric">
+                    <span>Unique characters</span>
+                    <strong id="unique">0%</strong>
+                </div>
+
+                <div class="metric">
+                    <span>Entropy estimate</span>
+                    <strong id="entropy">0 bits</strong>
+                </div>
+
+                <div class="metric">
+                    <span>Character types</span>
+                    <strong id="types">0/4</strong>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="content-grid">
+
+            <div class="panel">
+
+                <h2>
+                    Security Checks
+                </h2>
+
+                <div id="checks"></div>
+
+            </div>
+
+
+            <div class="panel">
+
+                <h2>
+                    Suggestions
+                </h2>
+
+                <div id="suggestions"></div>
+
+            </div>
+
+        </div>
+
+
+        <div class="panel">
+
+            <h2>
+                Pattern Findings
+            </h2>
+
+            <div id="findings"></div>
+
+        </div>
+
+    </section>
+
+
+    <section class="education">
+
+        <h2>
+            Password Hygiene
+        </h2>
+
+        <div class="education-grid">
+
+            <div>
+                <strong>
+                    Use long passwords
+                </strong>
+
+                <p>
+                    Prefer long passwords or memorable passphrases.
+                </p>
+            </div>
+
+
+            <div>
+                <strong>
+                    Never reuse passwords
+                </strong>
+
+                <p>
+                    Use a different password for each important account.
+                </p>
+            </div>
+
+
+            <div>
+                <strong>
+                    Use a password manager
+                </strong>
+
+                <p>
+                    A password manager can create and remember
+                    unique passwords.
+                </p>
+            </div>
+
+
+            <div>
+                <strong>
+                    Enable MFA
+                </strong>
+
+                <p>
+                    Multi-factor authentication adds another
+                    layer of protection.
+                </p>
+            </div>
+
+        </div>
+
+    </section>
+
+</main>
+
+
+<footer>
+    PasswordGuard • Educational cybersecurity project
+</footer>
+
+
+<script src="script.js"></script>
 
 </body>
 </html>
+
